@@ -1,23 +1,29 @@
-# Sistema de Gestión de Clientes para Call Center
+#  Sistema de Gestión de Clientes para Call Center
 
-## Descripción
+##  Descripción
 
-Sistema web para la **gestión y seguimiento de solicitudes de clientes en un Call Center**, con el objetivo de centralizar la información, mejorar la trazabilidad de los casos y optimizar la toma de decisiones.
+Sistema web desarrollado para la **gestión, seguimiento y análisis de solicitudes de clientes en un Call Center**, permitiendo centralizar la información y mejorar la toma de decisiones.
 
-La solución surge como respuesta a la problemática actual identificada en el proceso de atención, donde la información se encuentra dispersa entre herramientas como Excel y CRM, generando errores, duplicidad de datos y dificultad en el seguimiento de solicitudes.
+La solución surge debido a la problemática de manejo de datos en múltiples herramientas, lo que generaba:
 
-Este sistema permite registrar, visualizar, eliminar y analizar solicitudes de clientes mediante una interfaz web sencilla e intuitiva, apoyándose en tecnologías ligeras y fáciles de implementar.
+- Duplicidad de información  
+- Errores en el registro  
+- Falta de trazabilidad  
+- Dificultad en el análisis de datos  
+
+El sistema ofrece una interfaz moderna, intuitiva y funcional con visualización de datos en tiempo real.
 
 ---
 
 ## Objetivo General
 
-Diseñar e implementar una solución web funcional que permita:
+Diseñar e implementar una aplicación web que permita:
 
-- Centralizar la información de clientes
-- Gestionar solicitudes de manera estructurada
-- Visualizar estadísticas en tiempo real
-- Mejorar el control y seguimiento de casos
+- Centralizar la información de clientes  
+- Gestionar solicitudes de forma estructurada  
+- Dar seguimiento al estado de cada caso  
+- Visualizar estadísticas dinámicas  
+- Optimizar la toma de decisiones  
 
 ---
 
@@ -25,79 +31,115 @@ Diseñar e implementar una solución web funcional que permita:
 
 - **Backend:** Python + Flask  
 - **Frontend:** HTML5, CSS3, JavaScript  
-- **Base de datos:** Archivo JSON -simulación de base de datos- 
-- **Visualización de datos:** Chart.js  
+- **Base de datos:** JSON -`data.json`-
+- **Gráficas:** Chart.js  
 
 ---
 
-##  Arquitectura del Sistema
+## Arquitectura del Sistema
 
-El sistema sigue una arquitectura básica cliente-servidor:
+El sistema sigue una arquitectura cliente-servidor:
 
-- **Frontend:** Interfaz visual donde el usuario interactúa
-- **Backend:** API REST en Flask que gestiona la lógica
-- **Persistencia:** Archivo `data.json` que almacena los datos
+- **Frontend:** Interfaz de usuario -HTML, CSS, JS-
+- **Backend:** API REST en Flask
+- **Persistencia:** Archivo JSON como base de datos
 
 ---
 
-##  Estructura
+## 📁 Estructura del Proyecto
 
 ```
- GestionCall
-├── app.py # Backend Flask -API REST CRUD-
-├── data.json # Base de datos -almacenamiento de clientes-
+GestionCall/
+├── app.py # Backend Flask
+├── data.json # Base de datos -clientes-
 ├── templates/
 │ └── index.html # Interfaz principal
 ├── static/
-│ ├── styles.css # Estilos de la aplicación
+│ ├── styles.css # Estilos
 │ └── script.js # Lógica del frontend
-```
 
----
+
+```
 
 ##  Funcionalidades Principales
 
-###  Gestión de Clientes -CRUD-
-- Registrar nuevos clientes
-- Visualizar lista de solicitudes
-- Eliminar registros
-- Preparado para actualización
+###  Gestión de Clientes
+- Registrar clientes
+- Editar información 
+- Eliminar clientes con confirmación
+- Manejo de estados:
+  - Pendiente
+  - En proceso
+  - Resuelto
 
-###  Dashboard Interactivo
-- Total de solicitudes
-- Solicitudes pendientes
-- Solicitudes en proceso
-- Solicitudes resueltas
+---
 
-###  Visualización de Datos
-- Gráfica dinámica tipo *doughnut*
-- Actualización automática al registrar/eliminar datos
+###  Control de Fechas
+- Fecha de inicio automática al registrar
+- Fecha de finalización automática al marcar como resuelto
+- Seguimiento completo del ciclo del cliente
 
-###  Interfaz Responsiva
-- Diseño adaptable a diferentes dispositivos
-- Menú lateral desplegable
+---
+
+###  Dashboard en Tiempo Real
+- Total de solicitudes  
+- Cantidad de pendientes  
+- En proceso  
+- Resueltas  
+
+---
+
+###  Módulo de Estadísticas Avanzadas
+Accesible mediante botón **"Ver Estadísticas"**
+
+Incluye:
+
+- Gráfica por:
+  - Estados
+  - Jefes 
+  - Tipos de solicitud
+  - Líneas de WhatsApp
+- Filtros por tiempo:
+  - Hoy
+  - Últimos 7 días
+  - Último mes
+- Visualización dinámica 
+- Modal interactivo con diseño moderno
+
+---
+
+###  Interfaz de Usuario
+- Diseño limpio y moderno  
+- Sidebar desplegable  
+- Modales animados 
+- Fondo con efecto blur al abrir ventanas  
+- Botones estilizados 
+- Responsive -adaptable a móviles-
 
 ---
 
 ##  Flujo de Funcionamiento
 
-1. El usuario ingresa datos en el formulario
-2. El frontend envía la información al backend -Flask-
-3. El backend guarda los datos en `data.json`
-4. Se actualiza la tabla automáticamente
-5. Se recalculan estadísticas
-6. Se actualiza la gráfica en tiempo real
+1. El usuario registra un cliente  
+2. El frontend envía los datos al backend  
+3. Flask guarda la información en `data.json`  
+4. Se actualiza la tabla automáticamente  
+5. Se recalculan métricas del dashboard  
+6. Se actualizan las gráficas en tiempo real  
 
 ---
 
-##  Ejecución
-### 1. Clonar el repositorio
+##  Ejecución 
+
+### 1. Clonar repositorio
 ```
 git clone https://github.com/leonardo-200224/GestionCall.git
 2. Instalar dependencias
 pip install flask
-3. Ejecutar el servidor
+3. Ejecutar servidor
 python app.py
 4. Abrir en navegador
 http://127.0.0.1:5000
 ```
+![Texto alternativo](./img/estadisticas.jpeg)
+![Texto alternativo](./img/Registrar_Cliente.jpeg)
