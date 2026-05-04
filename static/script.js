@@ -1,9 +1,9 @@
 const tabla = document.getElementById("tablaClientes");
 let grafica;
 let editandoId = null;
-let graficaEstados, graficaJefes, graficaTipos, graficaLineas; 
 let graficaStats;
 let tipoGrafica = "estado";
+
 //  Cargar datos al iniciar
 document.addEventListener("DOMContentLoaded", () => {
     cargarClientes();
@@ -60,15 +60,6 @@ function guardarCliente() {
         resetFormulario();
         cargarClientes();
     });
-}
-
-
-// LIMPIAR FORMULARIO
-function limpiarFormulario() {
-    document.getElementById("nombre").value = "";
-    document.getElementById("telefono").value = "";
-    document.getElementById("tipo").value = "";
-    document.getElementById("estado").value = "";
 }
 
 
@@ -152,7 +143,6 @@ function actualizarGrafica(clientes) {
 
     const ctx = document.getElementById("miGrafica");
 
-    // destruir gráfica anterior
     if (grafica) {
         grafica.destroy();
     }
@@ -164,9 +154,6 @@ function actualizarGrafica(clientes) {
             datasets: [{
                 data: datos
             }]
-        },
-        options: {
-            responsive: true
         }
     });
 }
@@ -217,14 +204,11 @@ function guardarEdicion() {
         tipo,
         estado,
         linea,
-        jefe
+        jefe,
+        fecha_fin: estado === "Resuelto"
+            ? new Date().toISOString().split("T")[0]
+            : null
     };
-
-    if (estado === "Resuelto") {
-        datos.fecha_fin = new Date().toISOString().split("T")[0];
-    } else {
-        datos.fecha_fin = null;
-    }
 
     fetch(`/clientes/${editandoId}`, {
         method: "PUT",
@@ -260,16 +244,25 @@ function resetFormulario() {
 }
 
 
+// =====================
+// ESTADÍSTICAS
+// =====================
 
 function abrirEstadisticas() {
     document.getElementById("modalStats").style.display = "flex";
+    document.body.style.overflow = "hidden";
     cargarEstadisticas();
 }
 
 function cerrarEstadisticas() {
     document.getElementById("modalStats").style.display = "none";
+    document.body.style.overflow = "auto";
 }
 
+function cambiarGrafica(tipo) {
+    tipoGrafica = tipo;
+    cargarEstadisticas();
+}
 
 function cargarEstadisticas() {
 
@@ -278,10 +271,9 @@ function cargarEstadisticas() {
         .then(data => {
 
             const filtro = document.getElementById("filtroTiempo").value;
+            const hoy = new Date();
 
             if (filtro !== "todos") {
-                const hoy = new Date();
-
                 data = data.filter(c => {
                     const fecha = new Date(c.fecha_inicio);
                     const diff = (hoy - fecha) / (1000 * 60 * 60 * 24);
@@ -296,124 +288,6 @@ function cargarEstadisticas() {
         });
 }
 
-
-function filtrarPorFecha(clientes, filtro) {
-
-    const hoy = new Date();
-
-    return clientes.filter(c => {
-
-        if (!c.fecha_inicio) return true;
-
-        const fecha = new Date(c.fecha_inicio);
-        const diff = (hoy - fecha) / (1000 * 60 * 60 * 24);
-
-        if (filtro === "hoy") return diff < 1;
-        if (filtro === "semana") return diff <= 7;
-        if (filtro === "mes") return diff <= 30;
-
-        return true;
-    });
-}
-
-
-function crearGraficaEstados(clientes) {
-
-    let pendientes = 0, proceso = 0, resueltos = 0;
-
-    clientes.forEach(c => {
-        if (c.estado === "Pendiente") pendientes++;
-        if (c.estado === "En proceso") proceso++;
-        if (c.estado === "Resuelto") resueltos++;
-    });
-
-    if (graficaEstados) graficaEstados.destroy();
-
-    graficaEstados = new Chart(document.getElementById("graficaEstados"), {
-        type: "doughnut",
-        data: {
-            labels: ["Pendiente", "Proceso", "Resuelto"],
-            datasets: [{
-                data: [pendientes, proceso, resueltos]
-            }]
-        }
-    });
-}
-
-
-function crearGraficaJefes(clientes) {
-
-    const conteo = {};
-
-    clientes.forEach(c => {
-        conteo[c.jefe] = (conteo[c.jefe] || 0) + 1;
-    });
-
-    if (graficaJefes) graficaJefes.destroy();
-
-    graficaJefes = new Chart(document.getElementById("graficaJefes"), {
-        type: "bar",
-        data: {
-            labels: Object.keys(conteo),
-            datasets: [{
-                label: "Clientes por jefe",
-                data: Object.values(conteo)
-            }]
-        }
-    });
-}
-
-
-
-function crearGraficaTipos(clientes) {
-
-    const conteo = {};
-
-    clientes.forEach(c => {
-        conteo[c.tipo] = (conteo[c.tipo] || 0) + 1;
-    });
-
-    if (graficaTipos) graficaTipos.destroy();
-
-    graficaTipos = new Chart(document.getElementById("graficaTipos"), {
-        type: "bar",
-        data: {
-            labels: Object.keys(conteo),
-            datasets: [{
-                label: "Solicitudes por tipo",
-                data: Object.values(conteo)
-            }]
-        }
-    });
-}
-
-
-function crearGraficaLineas(clientes) {
-
-    const conteo = {};
-
-    clientes.forEach(c => {
-        conteo[c.linea] = (conteo[c.linea] || 0) + 1;
-    });
-
-    if (graficaLineas) graficaLineas.destroy();
-
-    graficaLineas = new Chart(document.getElementById("graficaLineas"), {
-        type: "bar",
-        data: {
-            labels: Object.keys(conteo),
-            datasets: [{
-                label: "Clientes por línea",
-                data: Object.values(conteo)
-            }]
-        }
-    });
-}
-
-function cambiarGrafica(tipo) {
-    tipoGrafica = tipo;
-    cargarEstadisticas();
-}
 
 function actualizarGraficaModal(clientes) {
 
@@ -448,9 +322,6 @@ function actualizarGraficaModal(clientes) {
         });
     }
 
-    const labels = Object.keys(datos);
-    const valores = Object.values(datos);
-
     const ctx = document.getElementById("graficaGeneral");
 
     if (graficaStats) {
@@ -460,14 +331,11 @@ function actualizarGraficaModal(clientes) {
     graficaStats = new Chart(ctx, {
         type: "bar",
         data: {
-            labels: labels,
+            labels: Object.keys(datos),
             datasets: [{
                 label: titulo,
-                data: valores
+                data: Object.values(datos)
             }]
-        },
-        options: {
-            responsive: true
         }
     });
 }

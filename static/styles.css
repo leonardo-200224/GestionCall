@@ -177,22 +177,38 @@ body {
 .modal {
     display: none;
     position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    background: rgba(177, 177, 177, 0.4);
+    backdrop-filter: blur(5px);  /*fondo borroso*/
+
     justify-content: center;
     align-items: center;
+    z-index: 2000;
 }
 
 .modal-content {
     background: #ffffff;
-    padding: 25px;
-    border-radius: 12px;
+    padding: 30px;
+    border-radius: 15px;
     width: 95%;
-    max-width: 900px;
-    max-height: 90vh;
-    overflow-y: auto;
+    max-width: 1000px;
+    height: auto;
+    max-height: 85vh;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden; 
     animation: aparecer 0.3s ease;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+}
+canvas {
+    max-width: 100% !important;
+    height: 350px !important;
 }
 
 .modal-content input,
@@ -308,17 +324,23 @@ body {
     border-radius: 6px;
     cursor: pointer;
 }
+
+.no-scroll {
+    overflow: hidden;
+}
+
 /* ANIMACIÓN */
 @keyframes aparecer {
     from {
-        transform: scale(0.8);
+        transform: translateY(-30px) scale(0.95);
         opacity: 0;
     }
     to {
-        transform: scale(1);
+        transform: translateY(0) scale(1);
         opacity: 1;
     }
 }
+
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
