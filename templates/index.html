@@ -34,7 +34,6 @@
         </div>
 
         <main class="main">
-
             <!-- DASHBOARD -->
             <section class="Dashboard" id="Dashboard">
                 <h2>Dashboard</h2>
@@ -61,13 +60,10 @@
                         <p>Resueltos</p>
                     </div>
                 </div>
-
-                <div class="grafica">
-                    <h3>Estadísticas</h3>
-                    <canvas id="miGrafica"></canvas>
-                </div>
+            <button class="btn-stats" onclick="abrirEstadisticas()">
+                📊 Ver Estadísticas
+            </button>
             </section>
-
             <!-- FORMULARIO -->
             <section class="form" id="Registrar">
                 <div class="ini">
@@ -186,6 +182,41 @@
                 <button onclick="guardarEdicion()">Actualizar</button>
                 <button onclick="cerrarModal()">Cancelar</button>
             </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL ESTADISTICAS -->
+    <div id="modalStats" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+
+            <h2>Estadísticas</h2>
+
+            <!-- FILTRO -->
+            <select id="filtroTiempo" class="filtro"  onchange="cargarEstadisticas()">
+                <option value="todos">Todos</option>
+                <option value="hoy">Hoy</option>
+                <option value="semana">Últimos 7 días</option>
+                <option value="mes">Último mes</option>
+            </select>
+
+            <hr><br>
+
+            <!-- BOTONES -->
+            <div class="botones-graficas stats-buttons">
+                <button onclick="cambiarGrafica('estado')">Estados</button>
+                <button onclick="cambiarGrafica('jefe')">Jefes</button>
+                <button onclick="cambiarGrafica('tipo')">Tipos</button>
+                <button onclick="cambiarGrafica('linea')">Líneas</button>
+            </div>
+
+            <hr><br>
+
+            <canvas id="graficaGeneral"></canvas>
+
+            <br>
+
+            <button onclick="cerrarEstadisticas()">Cerrar</button>
 
         </div>
     </div>

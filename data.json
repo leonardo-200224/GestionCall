@@ -42,5 +42,16 @@
         "fecha_inicio": "2026-05-04",
         "fecha_fin": null,
         "id": 4
+    },
+    {
+        "nombre": "sofia",
+        "telefono": "2323131",
+        "tipo": "Asesor\u00eda",
+        "estado": "En proceso",
+        "linea": "L\u00ednea 5",
+        "jefe": "Jefe 2",
+        "fecha_inicio": "2026-05-04",
+        "fecha_fin": null,
+        "id": 5
     }
 ]

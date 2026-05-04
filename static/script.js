@@ -1,7 +1,9 @@
 const tabla = document.getElementById("tablaClientes");
 let grafica;
 let editandoId = null;
-
+let graficaEstados, graficaJefes, graficaTipos, graficaLineas; 
+let graficaStats;
+let tipoGrafica = "estado";
 //  Cargar datos al iniciar
 document.addEventListener("DOMContentLoaded", () => {
     cargarClientes();
@@ -255,4 +257,217 @@ function resetFormulario() {
     document.getElementById("estado").value = "";
     document.getElementById("linea").value = "";
     document.getElementById("jefe").value = "";
+}
+
+
+
+function abrirEstadisticas() {
+    document.getElementById("modalStats").style.display = "flex";
+    cargarEstadisticas();
+}
+
+function cerrarEstadisticas() {
+    document.getElementById("modalStats").style.display = "none";
+}
+
+
+function cargarEstadisticas() {
+
+    fetch("/clientes")
+        .then(res => res.json())
+        .then(data => {
+
+            const filtro = document.getElementById("filtroTiempo").value;
+
+            if (filtro !== "todos") {
+                const hoy = new Date();
+
+                data = data.filter(c => {
+                    const fecha = new Date(c.fecha_inicio);
+                    const diff = (hoy - fecha) / (1000 * 60 * 60 * 24);
+
+                    if (filtro === "hoy") return diff <= 1;
+                    if (filtro === "semana") return diff <= 7;
+                    if (filtro === "mes") return diff <= 30;
+                });
+            }
+
+            actualizarGraficaModal(data);
+        });
+}
+
+
+function filtrarPorFecha(clientes, filtro) {
+
+    const hoy = new Date();
+
+    return clientes.filter(c => {
+
+        if (!c.fecha_inicio) return true;
+
+        const fecha = new Date(c.fecha_inicio);
+        const diff = (hoy - fecha) / (1000 * 60 * 60 * 24);
+
+        if (filtro === "hoy") return diff < 1;
+        if (filtro === "semana") return diff <= 7;
+        if (filtro === "mes") return diff <= 30;
+
+        return true;
+    });
+}
+
+
+function crearGraficaEstados(clientes) {
+
+    let pendientes = 0, proceso = 0, resueltos = 0;
+
+    clientes.forEach(c => {
+        if (c.estado === "Pendiente") pendientes++;
+        if (c.estado === "En proceso") proceso++;
+        if (c.estado === "Resuelto") resueltos++;
+    });
+
+    if (graficaEstados) graficaEstados.destroy();
+
+    graficaEstados = new Chart(document.getElementById("graficaEstados"), {
+        type: "doughnut",
+        data: {
+            labels: ["Pendiente", "Proceso", "Resuelto"],
+            datasets: [{
+                data: [pendientes, proceso, resueltos]
+            }]
+        }
+    });
+}
+
+
+function crearGraficaJefes(clientes) {
+
+    const conteo = {};
+
+    clientes.forEach(c => {
+        conteo[c.jefe] = (conteo[c.jefe] || 0) + 1;
+    });
+
+    if (graficaJefes) graficaJefes.destroy();
+
+    graficaJefes = new Chart(document.getElementById("graficaJefes"), {
+        type: "bar",
+        data: {
+            labels: Object.keys(conteo),
+            datasets: [{
+                label: "Clientes por jefe",
+                data: Object.values(conteo)
+            }]
+        }
+    });
+}
+
+
+
+function crearGraficaTipos(clientes) {
+
+    const conteo = {};
+
+    clientes.forEach(c => {
+        conteo[c.tipo] = (conteo[c.tipo] || 0) + 1;
+    });
+
+    if (graficaTipos) graficaTipos.destroy();
+
+    graficaTipos = new Chart(document.getElementById("graficaTipos"), {
+        type: "bar",
+        data: {
+            labels: Object.keys(conteo),
+            datasets: [{
+                label: "Solicitudes por tipo",
+                data: Object.values(conteo)
+            }]
+        }
+    });
+}
+
+
+function crearGraficaLineas(clientes) {
+
+    const conteo = {};
+
+    clientes.forEach(c => {
+        conteo[c.linea] = (conteo[c.linea] || 0) + 1;
+    });
+
+    if (graficaLineas) graficaLineas.destroy();
+
+    graficaLineas = new Chart(document.getElementById("graficaLineas"), {
+        type: "bar",
+        data: {
+            labels: Object.keys(conteo),
+            datasets: [{
+                label: "Clientes por línea",
+                data: Object.values(conteo)
+            }]
+        }
+    });
+}
+
+function cambiarGrafica(tipo) {
+    tipoGrafica = tipo;
+    cargarEstadisticas();
+}
+
+function actualizarGraficaModal(clientes) {
+
+    let datos = {};
+    let titulo = "";
+
+    if (tipoGrafica === "estado") {
+        titulo = "Estados";
+        clientes.forEach(c => {
+            datos[c.estado] = (datos[c.estado] || 0) + 1;
+        });
+    }
+
+    if (tipoGrafica === "jefe") {
+        titulo = "Clientes por Jefe";
+        clientes.forEach(c => {
+            datos[c.jefe] = (datos[c.jefe] || 0) + 1;
+        });
+    }
+
+    if (tipoGrafica === "tipo") {
+        titulo = "Tipos de Solicitud";
+        clientes.forEach(c => {
+            datos[c.tipo] = (datos[c.tipo] || 0) + 1;
+        });
+    }
+
+    if (tipoGrafica === "linea") {
+        titulo = "Líneas de WhatsApp";
+        clientes.forEach(c => {
+            datos[c.linea] = (datos[c.linea] || 0) + 1;
+        });
+    }
+
+    const labels = Object.keys(datos);
+    const valores = Object.values(datos);
+
+    const ctx = document.getElementById("graficaGeneral");
+
+    if (graficaStats) {
+        graficaStats.destroy();
+    }
+
+    graficaStats = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [{
+                label: titulo,
+                data: valores
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
 }
