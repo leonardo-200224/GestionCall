@@ -1,0 +1,16 @@
+[
+    {
+        "nombre": "leonardo",
+        "telefono": "3022621780",
+        "tipo": "Cita m\u00e9dica",
+        "estado": "Pendiente",
+        "id": 1
+    },
+    {
+        "nombre": "sofia",
+        "telefono": "3020032",
+        "tipo": "Asesor\u00eda",
+        "estado": "En proceso",
+        "id": 2
+    }
+]

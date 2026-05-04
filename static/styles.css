@@ -1,0 +1,189 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #f4f7fb;
+    --text: #1e293b;
+    --card: #ffffff;
+    --primary: #3c7587;
+    --secondary: #5da4b3;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: 0.3s;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card);
+    padding: 15px 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.navbar h2 {
+    font-size: 18px;
+}
+
+.menu a {
+    margin: 0 10px;
+    text-decoration: none;
+    color: var(--text);
+}
+
+#menuBtn,
+#themeBtn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.container {
+    display: flex;
+}
+
+.sidebar {
+    position: fixed;
+    left: -250px;
+    top: 0;
+    width: 220px;
+    height: 100%;
+    background: var(--primary);
+    color: white;
+    padding: 20px;
+    transition: 0.3s;
+    z-index: 1000;
+}
+
+.sidebar.active {
+    left: 0;
+}
+
+.sidebar a {
+    display: block;
+    color: white;
+    margin: 10px 0;
+    text-decoration: none;
+}
+
+.main {
+    flex: 1;
+    padding: 20px;
+}
+
+
+.Dashboard {
+    margin-bottom: 40px;
+}
+
+.cards {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.card {
+    flex: 1;
+    min-width: 150px;
+    background: var(--card);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* graficas*/
+.grafica {
+    max-width: 400px;
+    margin: auto;
+    background: var(--card);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+
+/* formulario*/
+.form {
+    margin-bottom: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.ini {
+    width: 100%;
+    max-width: 400px;
+    background: var(--card);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.ini input,
+.ini select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+.ini button {
+    width: 100%;
+    padding: 10px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.ini button:hover {
+    background: var(--secondary);
+}
+
+
+/* Tablas */
+.clientes table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+}
+
+.clientes th,
+.clientes td {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    text-align: center;
+}
+
+.clientes button {
+    padding: 5px 10px;
+    border: none;
+    background: crimson;
+    color: white;
+    cursor: pointer;
+}
+
+.clientes button:hover {
+    opacity: 0.8;
+}
+
+
+
+@media (max-width: 768px) {
+
+    .cards {
+        flex-direction: column;
+    }
+
+    .grafica {
+        width: 100%;
+    }
+
+}
