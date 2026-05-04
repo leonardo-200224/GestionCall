@@ -2,7 +2,7 @@
 
 ## Descripción
 
-Este proyecto consiste en el desarrollo de un sistema web para la **gestión y seguimiento de solicitudes de clientes en un Call Center**, con el objetivo de centralizar la información, mejorar la trazabilidad de los casos y optimizar la toma de decisiones.
+Sistema web para la **gestión y seguimiento de solicitudes de clientes en un Call Center**, con el objetivo de centralizar la información, mejorar la trazabilidad de los casos y optimizar la toma de decisiones.
 
 La solución surge como respuesta a la problemática actual identificada en el proceso de atención, donde la información se encuentra dispersa entre herramientas como Excel y CRM, generando errores, duplicidad de datos y dificultad en el seguimiento de solicitudes.
 
