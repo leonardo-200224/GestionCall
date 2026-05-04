@@ -14,7 +14,7 @@
     <div class="navbar">
         <button id="menuBtn">☰</button>
 
-        <h2> Call Center System</h2>
+        <h2>Call Center System</h2>
 
         <div class="menu">
             <a href="#Dashboard">Dashboard</a>
@@ -24,6 +24,8 @@
     </div>
 
     <div class="container">
+
+        <!-- sidebar -->
         <div class="sidebar">
             <h3>Menú</h3>
             <a href="#Dashboard">Dashboard</a>
@@ -65,7 +67,6 @@
                     <canvas id="miGrafica"></canvas>
                 </div>
             </section>
-
 
             <!-- FORMULARIO -->
             <section class="form" id="Registrar">
@@ -111,7 +112,6 @@
                 </div>
             </section>
 
-
             <!-- Tabla -->
             <section class="clientes" id="Solicitudes">
                 <h2>Solicitudes</h2>
@@ -139,6 +139,55 @@
             </section>
 
         </main>
+    </div>
+
+    <!-- MODAL EDITAR -->
+    <div id="modalEditar" class="modal">
+        <div class="modal-content">
+
+            <h3>Editar Cliente</h3>
+            <hr><br>
+
+            <input type="text" id="edit_nombre" placeholder="Nombre">
+            <input type="text" id="edit_telefono" placeholder="Teléfono">
+
+            <select id="edit_tipo">
+                <option value="">Tipo</option>
+                <option>Cita médica</option>
+                <option>Taxes</option>
+                <option>Asesoría</option>
+            </select>
+
+            <select id="edit_estado">
+                <option value="">Estado</option>
+                <option>Pendiente</option>
+                <option>En proceso</option>
+                <option>Resuelto</option>
+            </select>
+
+            <select id="edit_linea">
+                <option value="">Línea</option>
+                <option>Línea 1</option>
+                <option>Línea 2</option>
+                <option>Línea 3</option>
+                <option>Línea 4</option>
+                <option>Línea 5</option>
+                <option>Línea 6</option>
+            </select>
+
+            <select id="edit_jefe">
+                <option value="">Jefe</option>
+                <option>Jefe 1</option>
+                <option>Jefe 2</option>
+                <option>Jefe 3</option>
+            </select>
+
+            <div class="modal-buttons">
+                <button onclick="guardarEdicion()">Actualizar</button>
+                <button onclick="cerrarModal()">Cancelar</button>
+            </div>
+
+        </div>
     </div>
 
     <footer style="text-align: center;">

@@ -1,13 +1,46 @@
 [
     {
-        "nombre": "leonardo",
+        "nombre": "armando",
         "telefono": "3022621780",
         "tipo": "Cita m\u00e9dica",
         "estado": "Resuelto",
-        "linea": "L\u00ednea 1",
+        "linea": "L\u00ednea 2",
         "jefe": "Jefe 1",
         "fecha_inicio": "2026-05-04",
         "fecha_fin": "2026-05-04",
         "id": 1
+    },
+    {
+        "nombre": "leonardo",
+        "telefono": "30262727328",
+        "tipo": "Taxes",
+        "estado": "En proceso",
+        "linea": "L\u00ednea 3",
+        "jefe": "Jefe 3",
+        "fecha_inicio": "2026-05-04",
+        "fecha_fin": null,
+        "id": 2
+    },
+    {
+        "nombre": "karen",
+        "telefono": "239238298",
+        "tipo": "Cita m\u00e9dica",
+        "estado": "Pendiente",
+        "linea": "L\u00ednea 2",
+        "jefe": "Jefe 3",
+        "fecha_inicio": "2026-05-04",
+        "fecha_fin": null,
+        "id": 3
+    },
+    {
+        "nombre": "juan",
+        "telefono": "21323134131",
+        "tipo": "Cita m\u00e9dica",
+        "estado": "En proceso",
+        "linea": "L\u00ednea 1",
+        "jefe": "Jefe 1",
+        "fecha_inicio": "2026-05-04",
+        "fecha_fin": null,
+        "id": 4
     }
 ]
