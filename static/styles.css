@@ -21,7 +21,7 @@ body {
 /* NAVBAR */
 .navbar {
     display: flex;
-    justify-content: space-between;
+    justify-content:space-between;
     align-items: center;
     background: var(--card);
     padding: 15px 20px;
@@ -39,16 +39,14 @@ body {
 }
 
 #menuBtn {
+    display: none;
     background: none;
     border: none;
     font-size: 20px;
     cursor: pointer;
 }
 
-/* LAYOUT */
-.container {
-    display: flex;
-}
+
 
 .main {
     flex: 1;
@@ -62,8 +60,8 @@ body {
     top: 0;
     width: 220px;
     height: 100%;
-    background: var(--primary);
-    color: white;
+    background: white;
+    color: rgb(6, 6, 6);
     padding: 20px;
     transition: 0.3s;
     z-index: 1000;
@@ -75,7 +73,7 @@ body {
 
 .sidebar a {
     display: block;
-    color: white;
+    color: rgb(0, 0, 0);
     margin: 10px 0;
     text-decoration: none;
 }
@@ -159,6 +157,8 @@ body {
 
 .clientes button {
     padding: 5px 10px;
+    margin: 2px;
+    width: 70%;
     border: none;
     color: white;
     cursor: pointer;
@@ -166,11 +166,13 @@ body {
 
 /* Botones separados (más pro) */
 .clientes button:first-child {
-    background: #3c7587; /* editar */
+    background: #3c7587;
+    /* editar */
 }
 
 .clientes button:last-child {
-    background: crimson; /* eliminar */
+    background: crimson;
+    /* eliminar */
 }
 
 /* MODAL */
@@ -183,7 +185,8 @@ body {
     height: 100%;
 
     background: rgba(177, 177, 177, 0.4);
-    backdrop-filter: blur(5px);  /*fondo borroso*/
+    backdrop-filter: blur(5px);
+    /*fondo borroso*/
 
     justify-content: center;
     align-items: center;
@@ -202,10 +205,11 @@ body {
     display: flex;
     flex-direction: column;
 
-    overflow: hidden; 
+    overflow: hidden;
     animation: aparecer 0.3s ease;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
 }
+
 canvas {
     max-width: 100% !important;
     height: 350px !important;
@@ -282,7 +286,7 @@ canvas {
 .btn-stats:hover {
     transform: scale(1.05);
     opacity: 0.9;
-} 
+}
 
 .stats-buttons {
     display: flex;
@@ -335,6 +339,7 @@ canvas {
         transform: translateY(-30px) scale(0.95);
         opacity: 0;
     }
+
     to {
         transform: translateY(0) scale(1);
         opacity: 1;
@@ -344,11 +349,39 @@ canvas {
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
+    #menuBtn {
+        display: block;
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+    }
+    .sidebar.active{
+        box-shadow: 2px 2px 22px #ccc;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sidebar.active a{
+        transition: 0.5s;
+    }
+    .sidebar.active a:hover{
+        transform: scale(1.05);
+        padding: 12px;
+        background-color: rgba(0, 0, 0, 0.5);
+        color: white;
+        border-radius: 6px;
+    }
+    .menu  {
+        display: none;
+    }
+
     .cards {
         flex-direction: column;
     }
 
-    .grafica {
-        width: 100%;
-    }
+    .clientes table {
+        display: none;
+}
+
 }
