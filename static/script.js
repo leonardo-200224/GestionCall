@@ -26,18 +26,25 @@ function guardarCliente() {
     const telefono = document.getElementById("telefono").value;
     const tipo = document.getElementById("tipo").value;
     const estado = document.getElementById("estado").value;
+    const linea = document.getElementById("linea").value;
+    const jefe = document.getElementById("jefe").value;
 
-    // VALIDACIÓN
-    if (!nombre || !telefono || !tipo || !estado) {
+    if (!nombre || !telefono || !tipo || !estado || !linea || !jefe) {
         alert("Todos los campos son obligatorios");
         return;
     }
+
+    const fecha_inicio = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 
     const cliente = {
         nombre,
         telefono,
         tipo,
-        estado
+        estado,
+        linea,
+        jefe,
+        fecha_inicio,
+        fecha_fin: null
     };
 
     fetch("/clientes", {
@@ -47,10 +54,10 @@ function guardarCliente() {
         },
         body: JSON.stringify(cliente)
     })
-    .then(() => {
-        limpiarFormulario();
-        cargarClientes();
-    });
+        .then(() => {
+            limpiarFormulario();
+            cargarClientes();
+        });
 }
 
 
@@ -68,15 +75,20 @@ function mostrarTabla(clientes) {
 
     clientes.forEach(cliente => {
         const fila = `
-            <tr>
-                <td>${cliente.nombre}</td>
-                <td>${cliente.telefono}</td>
-                <td>${cliente.tipo}</td>
-                <td>${cliente.estado}</td>
-                <td>
-                    <button onclick="eliminarCliente(${cliente.id})">Eliminar</button>
-                </td>
-            </tr>
+        <tr>
+            <td>${cliente.nombre}</td>
+            <td>${cliente.telefono}</td>
+            <td>${cliente.tipo}</td>
+            <td>${cliente.estado}</td>
+            <td>${cliente.linea}</td>
+            <td>${cliente.jefe}</td>
+            <td>${cliente.fecha_inicio}</td>
+            <td>${cliente.fecha_fin || "-"}</td>
+            <td>
+                <button onclick="resolverCliente(${cliente.id})">Resolver</button>
+                <button onclick="eliminarCliente(${cliente.id})">Eliminar</button>
+            </td>
+        </tr>
         `;
         tabla.innerHTML += fila;
     });
@@ -88,7 +100,7 @@ function eliminarCliente(id) {
     fetch(`/clientes/${id}`, {
         method: "DELETE"
     })
-    .then(() => cargarClientes());
+        .then(() => cargarClientes());
 }
 
 
@@ -148,3 +160,19 @@ function actualizarGrafica(clientes) {
     });
 }
 
+function resolverCliente(id) {
+
+    const fecha_fin = new Date().toISOString().split("T")[0];
+
+    fetch(`/clientes/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            estado: "Resuelto",
+            fecha_fin: fecha_fin
+        })
+    })
+    .then(() => cargarClientes());
+}

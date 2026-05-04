@@ -3,14 +3,11 @@
         "nombre": "leonardo",
         "telefono": "3022621780",
         "tipo": "Cita m\u00e9dica",
-        "estado": "Pendiente",
+        "estado": "Resuelto",
+        "linea": "L\u00ednea 1",
+        "jefe": "Jefe 1",
+        "fecha_inicio": "2026-05-04",
+        "fecha_fin": "2026-05-04",
         "id": 1
-    },
-    {
-        "nombre": "sofia",
-        "telefono": "3020032",
-        "tipo": "Asesor\u00eda",
-        "estado": "En proceso",
-        "id": 2
     }
 ]
