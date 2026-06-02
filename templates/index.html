@@ -1,238 +1,324 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Call Center System</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GestionCall Pro — Centro de Operaciones</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
-
 <body>
 
-    <!-- barra de navegacion -->
-    <div class="navbar">
-        <button id="menuBtn">☰</button>
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
 
-        <h2>Call Center System</h2>
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <a class="sidebar-logo" href="#" onclick="navigate('dashboard')">
+    <div class="logo-mark">GC</div>
+    <div class="logo-text">
+      <strong>GestionCall</strong>
+      <span>Call Center OS</span>
+    </div>
+  </a>
 
-        <div class="menu">
-            <a href="#Dashboard">Dashboard</a>
-            <a href="#Registrar">Registrar</a>
-            <a href="#Solicitudes">Solicitudes</a>
-        </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Principal</div>
+    <a class="nav-item active" id="nav-dashboard"   href="#" onclick="navigate('dashboard')">
+      <span class="nav-icon">▦</span> Dashboard
+    </a>
+    <a class="nav-item" id="nav-registrar"   href="#" onclick="navigate('registrar')">
+      <span class="nav-icon">＋</span> Nuevo Cliente
+    </a>
+    <a class="nav-item" id="nav-solicitudes" href="#" onclick="navigate('solicitudes')">
+      <span class="nav-icon">≡</span> Solicitudes
+    </a>
+
+    <div class="nav-label" style="margin-top:24px">Análisis</div>
+    <button class="nav-item" onclick="abrirEstadisticas()">
+      <span class="nav-icon">◎</span> Estadísticas
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="user-avatar">OP</div>
+      <div class="user-info">
+        <strong>Operador</strong>
+        <span>Agente activo</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-left">
+    <button id="menuBtn" onclick="toggleSidebar()">☰</button>
+    <span class="page-title" id="pageTitle">Dashboard</span>
+    <span class="page-breadcrumb" id="pageSub">Resumen general</span>
+  </div>
+  <div class="topbar-right">
+    <button class="topbar-btn" title="Actualizar" onclick="cargarClientes()">↻</button>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- DASHBOARD -->
+  <section id="sec-dashboard" class="section active">
+    <div class="section-head">
+      <div>
+        <h2>Centro de Operaciones</h2>
+        <p>Métricas en tiempo real</p>
+      </div>
+      <button class="btn-open-stats" onclick="abrirEstadisticas()">
+        ◎ &nbsp;Ver estadísticas
+      </button>
     </div>
 
-    <div class="container">
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-badge"></div>
+        <div class="kpi-label">Total solicitudes</div>
+        <div class="kpi-val" id="total">—</div>
+        <div class="kpi-bar-track"><div class="kpi-bar" id="bar-total"></div></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-badge"></div>
+        <div class="kpi-label">Pendientes</div>
+        <div class="kpi-val" id="pendientes">—</div>
+        <div class="kpi-bar-track"><div class="kpi-bar" id="bar-pend"></div></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-badge"></div>
+        <div class="kpi-label">En proceso</div>
+        <div class="kpi-val" id="proceso">—</div>
+        <div class="kpi-bar-track"><div class="kpi-bar" id="bar-proc"></div></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-badge"></div>
+        <div class="kpi-label">Resueltos</div>
+        <div class="kpi-val" id="resueltos">—</div>
+        <div class="kpi-bar-track"><div class="kpi-bar" id="bar-res"></div></div>
+      </div>
+    </div>
+  </section>
 
-        <!-- sidebar -->
-        <div class="sidebar">
-            <h3>Menú</h3>
-            <a href="#Dashboard">Dashboard</a>
-            <hr>
-            <a href="#Registrar">Registrar Cliente</a>
-            <hr>
-            <a href="#Solicitudes">Solicitudes</a>
-            <hr>
-            <a href="#" onclick="abrirEstadisticas()"> Ver Estadísticas</a>
-            <hr>
-        </div>
-
-        <main class="main">
-
-            <!-- DASHBOARD -->
-            <section class="Dashboard" id="Dashboard">
-                <h2>Dashboard</h2>
-                <hr><br>
-
-                <div class="cards">
-                    <div class="card">
-                        <h3 id="total">0</h3>
-                        <p>Total</p>
-                    </div>
-
-                    <div class="card">
-                        <h3 id="pendientes">0</h3>
-                        <p>Pendientes</p>
-                    </div>
-
-                    <div class="card">
-                        <h3 id="proceso">0</h3>
-                        <p>En Proceso</p>
-                    </div>
-
-                    <div class="card">
-                        <h3 id="resueltos">0</h3>
-                        <p>Resueltos</p>
-                    </div>
-                </div>
-
-                <button class="btn-stats" onclick="abrirEstadisticas()">
-                    Ver Estadísticas
-                </button>
-            </section>
-
-            <!-- FORMULARIO -->
-            <section class="form" id="Registrar">
-                <div class="ini">
-                    <h3>Registrar Cliente</h3>
-                    <hr><br>
-
-                    <input type="text" id="nombre" placeholder="Nombre">
-                    <input type="text" id="telefono" placeholder="Teléfono">
-
-                    <select id="tipo">
-                        <option value="">Tipo</option>
-                        <option>Cita médica</option>
-                        <option>Taxes</option>
-                        <option>Asesoría</option>
-                    </select>
-
-                    <select id="estado">
-                        <option value="">Estado</option>
-                        <option>Pendiente</option>
-                        <option>En proceso</option>
-                        <option>Resuelto</option>
-                    </select>
-
-                    <select id="linea">
-                        <option value="">Línea WhatsApp</option>
-                        <option>Línea 1</option>
-                        <option>Línea 2</option>
-                        <option>Línea 3</option>
-                        <option>Línea 4</option>
-                        <option>Línea 5</option>
-                        <option>Línea 6</option>
-                    </select>
-
-                    <select id="jefe">
-                        <option value="">Cartera / Jefe</option>
-                        <option>Jefe 1</option>
-                        <option>Jefe 2</option>
-                        <option>Jefe 3</option>
-                    </select>
-
-                    <button onclick="guardarCliente()">Guardar</button>
-                </div>
-            </section>
-
-            <!-- Tabla -->
-            <section class="clientes" id="Solicitudes">
-                <h2>Solicitudes</h2>
-                <hr>
-
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Cliente</th>
-                            <th>Teléfono</th>
-                            <th>Tipo</th>
-                            <th>Estado</th>
-                            <th>Línea</th>
-                            <th>Jefe</th>
-                            <th>Inicio</th>
-                            <th>Fin</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="tablaClientes">
-                        <!-- informacion de los clientes -->
-                    </tbody>
-                </table>
-            </section>
-
-        </main>
+  <!-- REGISTRAR -->
+  <section id="sec-registrar" class="section">
+    <div class="section-head">
+      <div>
+        <h2>Nuevo cliente</h2>
+        <p>Registrar solicitud en el sistema</p>
+      </div>
     </div>
 
-    <!-- MODAL EDITAR -->
-    <div id="modalEditar" class="modal">
-        <div class="modal-content">
-
-            <h3>Editar Cliente</h3>
-            <hr><br>
-
-            <input type="text" id="edit_nombre" placeholder="Nombre">
-            <input type="text" id="edit_telefono" placeholder="Teléfono">
-
-            <select id="edit_tipo">
-                <option value="">Tipo</option>
-                <option>Cita médica</option>
-                <option>Taxes</option>
-                <option>Asesoría</option>
-            </select>
-
-            <select id="edit_estado">
-                <option value="">Estado</option>
-                <option>Pendiente</option>
-                <option>En proceso</option>
-                <option>Resuelto</option>
-            </select>
-
-            <select id="edit_linea">
-                <option value="">Línea</option>
-                <option>Línea 1</option>
-                <option>Línea 2</option>
-                <option>Línea 3</option>
-                <option>Línea 4</option>
-                <option>Línea 5</option>
-                <option>Línea 6</option>
-            </select>
-
-            <select id="edit_jefe">
-                <option value="">Jefe</option>
-                <option>Jefe 1</option>
-                <option>Jefe 2</option>
-                <option>Jefe 3</option>
-            </select>
-
-            <div class="modal-buttons">
-                <button onclick="guardarEdicion()">Actualizar</button>
-                <button onclick="cerrarModal()">Cancelar</button>
-            </div>
-
+    <div class="form-shell">
+      <div class="form-shell-header">
+        <div class="form-shell-dot"></div>
+        <h3>Datos del cliente</h3>
+      </div>
+      <div class="form-body">
+        <div class="field-row">
+          <div class="field">
+            <label>Nombre completo</label>
+            <input type="text" id="nombre" placeholder="Ej. María García" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Teléfono</label>
+            <input type="tel" id="telefono" placeholder="+57 300 000 0000" autocomplete="off">
+          </div>
         </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Tipo de solicitud</label>
+            <select id="tipo">
+              <option value="">Seleccionar…</option>
+              <option>Cita médica</option>
+              <option>Taxes</option>
+              <option>Asesoría</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Estado inicial</label>
+            <select id="estado">
+              <option value="">Seleccionar…</option>
+              <option>Pendiente</option>
+              <option>En proceso</option>
+              <option>Resuelto</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Línea WhatsApp</label>
+            <select id="linea">
+              <option value="">Seleccionar…</option>
+              <option>Línea 1</option><option>Línea 2</option><option>Línea 3</option>
+              <option>Línea 4</option><option>Línea 5</option><option>Línea 6</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Cartera / Jefe</label>
+            <select id="jefe">
+              <option value="">Seleccionar…</option>
+              <option>Jefe 1</option><option>Jefe 2</option><option>Jefe 3</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row single">
+          <button class="btn-save" onclick="guardarCliente()">Guardar cliente →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOLICITUDES -->
+  <section id="sec-solicitudes" class="section">
+    <div class="section-head">
+      <div>
+        <h2>Solicitudes</h2>
+        <p>Listado completo de clientes</p>
+      </div>
     </div>
 
-    <!-- MODAL ESTADISTICAS -->
-    <div id="modalStats" class="modal">
-        <div class="modal-content">
-
-            <h2> Estadísticas</h2>
-
-            <select id="filtroTiempo" class="filtro" onchange="cargarEstadisticas()">
-                <option value="todos">Todos</option>
-                <option value="hoy">Hoy</option>
-                <option value="semana">Últimos 7 días</option>
-                <option value="mes">Último mes</option>
-            </select>
-
-            <hr>
-
-            <!-- BOTONES -->
-            <div class="stats-buttons">
-                <button onclick="cambiarGrafica('estado')">Estados</button>
-                <button onclick="cambiarGrafica('jefe')">Jefes</button>
-                <button onclick="cambiarGrafica('tipo')">Tipos</button>
-                <button onclick="cambiarGrafica('linea')">Líneas</button>
-            </div>
-
-            <hr>
-
-            <canvas id="graficaGeneral"></canvas>
-
-            <button onclick="cerrarEstadisticas()">Cerrar</button>
-
+    <div class="table-shell">
+      <div class="table-toolbar">
+        <div class="table-title">
+          Clientes registrados
+          <span class="count-chip" id="rowCount">0</span>
+          <span class="count-chip filtered" id="filteredCount"></span>
         </div>
+        <div class="toolbar-actions">
+          <input type="search" id="searchInput" class="search-input" placeholder="Buscar…" autocomplete="off">
+          <select class="filter-select" onchange="onFilterChange('estado', this.value)" id="filterEstado">
+            <option value="">Estado</option>
+            <option>Pendiente</option><option>En proceso</option><option>Resuelto</option>
+          </select>
+          <select class="filter-select" onchange="onFilterChange('jefe', this.value)" id="filterJefe">
+            <option value="">Jefe</option>
+            <option>Jefe 1</option><option>Jefe 2</option><option>Jefe 3</option>
+          </select>
+          <select class="filter-select" onchange="onFilterChange('tipo', this.value)" id="filterTipo">
+            <option value="">Tipo</option>
+            <option>Cita médica</option><option>Taxes</option><option>Asesoría</option>
+          </select>
+          <button class="btn-clear-filters" onclick="limpiarFiltros()" title="Limpiar filtros">✕</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="sortable" onclick="sortBy('nombre')">Cliente</th>
+              <th>Teléfono</th>
+              <th class="sortable" onclick="sortBy('tipo')">Tipo</th>
+              <th class="sortable" onclick="sortBy('estado')">Estado</th>
+              <th>Línea</th>
+              <th class="sortable" onclick="sortBy('jefe')">Jefe</th>
+              <th class="sortable" onclick="sortBy('fecha_inicio')">Inicio</th>
+              <th>Fin</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tablaClientes"></tbody>
+        </table>
+      </div>
     </div>
+  </section>
 
-    <footer style="text-align: center;">
-        <p>&copy; 2026 Call center</p>
-    </footer>
+</main>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+<!-- MODAL: EDITAR -->
+<div id="modalEditar" class="modal">
+  <div class="modal-panel">
+    <div class="modal-head">
+      <h3>Editar cliente</h3>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field"><label>Nombre</label><input type="text" id="edit_nombre" autocomplete="off"></div>
+        <div class="field"><label>Teléfono</label><input type="tel" id="edit_telefono" autocomplete="off"></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Tipo</label>
+          <select id="edit_tipo">
+            <option value="">Seleccionar</option>
+            <option>Cita médica</option><option>Taxes</option><option>Asesoría</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Estado</label>
+          <select id="edit_estado">
+            <option value="">Seleccionar</option>
+            <option>Pendiente</option><option>En proceso</option><option>Resuelto</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Línea</label>
+          <select id="edit_linea">
+            <option value="">Seleccionar</option>
+            <option>Línea 1</option><option>Línea 2</option><option>Línea 3</option>
+            <option>Línea 4</option><option>Línea 5</option><option>Línea 6</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Jefe</label>
+          <select id="edit_jefe">
+            <option value="">Seleccionar</option>
+            <option>Jefe 1</option><option>Jefe 2</option><option>Jefe 3</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost"   onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-confirm" onclick="guardarEdicion()">Actualizar →</button>
+    </div>
+  </div>
+</div>
 
+<!-- MODAL: CONFIRM -->
+<div id="modalConfirm" class="modal">
+  <div class="modal-panel modal-panel--sm">
+    <div class="modal-head">
+      <h3>Confirmar acción</h3>
+      <button class="modal-close" onclick="ConfirmDialog.cancel()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmMessage" class="confirm-msg"></p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost"  onclick="ConfirmDialog.cancel()">Cancelar</button>
+      <button class="btn-danger" onclick="ConfirmDialog.confirm()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ESTADÍSTICAS -->
+<div id="modalStats" class="modal">
+  <div class="modal-panel wide">
+    <div class="modal-head">
+      <h3>Estadísticas</h3>
+      <button class="modal-close" onclick="cerrarEstadisticas()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="stats-tabs">
+        <button class="stab active" onclick="cambiarGrafica('estado', this)">Por estado</button>
+        <button class="stab"        onclick="cambiarGrafica('jefe',   this)">Por jefe</button>
+        <button class="stab"        onclick="cambiarGrafica('tipo',   this)">Por tipo</button>
+        <button class="stab"        onclick="cambiarGrafica('linea',  this)">Por línea</button>
+      </div>
+      <canvas id="graficaGeneral"></canvas>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
-
 </html>

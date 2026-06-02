@@ -1,68 +1,92 @@
 [
-    {
-        "nombre": "armando",
-        "telefono": "3022621780",
-        "tipo": "Taxes",
-        "estado": "Resuelto",
-        "linea": "L\u00ednea 2",
-        "jefe": "Jefe 1",
-        "fecha_inicio": "2026-05-04",
-        "fecha_fin": "2026-05-04",
-        "id": 1
-    },
-    {
-        "nombre": "leonardo",
-        "telefono": "30262727328",
-        "tipo": "Taxes",
-        "estado": "Resuelto",
-        "linea": "L\u00ednea 3",
-        "jefe": "Jefe 3",
-        "fecha_inicio": "2026-05-04",
-        "fecha_fin": "2026-05-04",
-        "id": 2
-    },
-    {
-        "nombre": "karen",
-        "telefono": "239238298",
-        "tipo": "Cita m\u00e9dica",
-        "estado": "Pendiente",
-        "linea": "L\u00ednea 2",
-        "jefe": "Jefe 3",
-        "fecha_inicio": "2026-05-04",
-        "fecha_fin": null,
-        "id": 3
-    },
-    {
-        "nombre": "juan",
-        "telefono": "21323134131",
-        "tipo": "Cita m\u00e9dica",
-        "estado": "En proceso",
-        "linea": "L\u00ednea 1",
-        "jefe": "Jefe 1",
-        "fecha_inicio": "2026-05-04",
-        "fecha_fin": null,
-        "id": 4
-    },
-    {
-        "nombre": "sofia",
-        "telefono": "2323131",
-        "tipo": "Asesor\u00eda",
-        "estado": "En proceso",
-        "linea": "L\u00ednea 5",
-        "jefe": "Jefe 2",
-        "fecha_inicio": "2026-05-04",
-        "fecha_fin": null,
-        "id": 5
-    },
-    {
-        "nombre": "karen",
-        "telefono": "302023023",
-        "tipo": "Cita m\u00e9dica",
-        "estado": "Pendiente",
-        "linea": "L\u00ednea 4",
-        "jefe": "Jefe 3",
-        "fecha_inicio": "2026-05-04",
-        "fecha_fin": null,
-        "id": 6
-    }
+  {
+    "nombre": "armando",
+    "telefono": "3022621780",
+    "tipo": "Taxes",
+    "estado": "Resuelto",
+    "linea": "Línea 2",
+    "jefe": "Jefe 1",
+    "fecha_inicio": "2026-05-04",
+    "fecha_fin": "2026-05-04",
+    "id": 1
+  },
+  {
+    "nombre": "leonardo",
+    "telefono": "30262727328",
+    "tipo": "Taxes",
+    "estado": "Resuelto",
+    "linea": "Línea 3",
+    "jefe": "Jefe 3",
+    "fecha_inicio": "2026-05-04",
+    "fecha_fin": "2026-05-04",
+    "id": 2
+  },
+  {
+    "nombre": "karen",
+    "telefono": "239238298",
+    "tipo": "Cita médica",
+    "estado": "Pendiente",
+    "linea": "Línea 2",
+    "jefe": "Jefe 3",
+    "fecha_inicio": "2026-05-04",
+    "fecha_fin": null,
+    "id": 3
+  },
+  {
+    "nombre": "juan",
+    "telefono": "21323134131",
+    "tipo": "Cita médica",
+    "estado": "En proceso",
+    "linea": "Línea 1",
+    "jefe": "Jefe 1",
+    "fecha_inicio": "2026-05-04",
+    "fecha_fin": null,
+    "id": 4
+  },
+  {
+    "nombre": "sofia",
+    "telefono": "2323131",
+    "tipo": "Asesoría",
+    "estado": "En proceso",
+    "linea": "Línea 5",
+    "jefe": "Jefe 2",
+    "fecha_inicio": "2026-05-04",
+    "fecha_fin": null,
+    "id": 5
+  },
+  {
+    "nombre": "karen",
+    "telefono": "302023023",
+    "tipo": "Cita médica",
+    "estado": "Pendiente",
+    "linea": "Línea 4",
+    "jefe": "Jefe 3",
+    "fecha_inicio": "2026-05-04",
+    "fecha_fin": null,
+    "id": 6
+  },
+  {
+    "id": "4ac04e16-663e-40f3-b129-0b014d7bcd74",
+    "nombre": "LEO",
+    "telefono": "DADAD",
+    "tipo": "Cita médica",
+    "estado": "Pendiente",
+    "linea": "Línea 2",
+    "jefe": "Jefe 1",
+    "fecha_inicio": "2026-06-02",
+    "fecha_fin": null,
+    "created_at": "2026-06-02T03:08:49.271856+00:00"
+  },
+  {
+    "id": "36e72882-1b27-4988-93b2-f161c1e562e6",
+    "nombre": "Deimer",
+    "telefono": "3022621780",
+    "tipo": "Cita médica",
+    "estado": "Pendiente",
+    "linea": "Línea 1",
+    "jefe": "Jefe 2",
+    "fecha_inicio": "2026-06-02",
+    "fecha_fin": null,
+    "created_at": "2026-06-02T03:11:16.039442+00:00"
+  }
 ]

@@ -1,361 +1,592 @@
-const tabla = document.getElementById("tablaClientes");
-let grafica;
-let editandoId = null;
-let graficaStats;
-let tipoGrafica = "estado";
+/**
+ * GestionCall Pro — Frontend Controller
+ * Arquitectura: módulos separados por responsabilidad.
+ * No hay dependencias externas salvo Chart.js (cargado en HTML).
+ */
 
-//  Cargar datos al iniciar
-document.addEventListener("DOMContentLoaded", () => {
-    cargarClientes();
+"use strict";
+
+// ─── Estado global ────────────────────────────────────────────────────────────
+
+const State = (() => {
+  let _clientes = [];
+  let _editingId = null;
+  let _chart = null;
+  let _chartType = "estado";
+  let _filters = { q: "", estado: "", jefe: "", tipo: "" };
+  let _sortKey = null;
+  let _sortDir = 1; // 1 = asc, -1 = desc
+
+  return {
+    get clientes()   { return _clientes; },
+    set clientes(v)  { _clientes = v; },
+    get editingId()  { return _editingId; },
+    set editingId(v) { _editingId = v; },
+    get chart()      { return _chart; },
+    set chart(v)     { _chart = v; },
+    get chartType()  { return _chartType; },
+    set chartType(v) { _chartType = v; },
+    get filters()    { return { ..._filters }; },
+    setFilter(key, val) { _filters[key] = val; },
+    get sortKey()    { return _sortKey; },
+    get sortDir()    { return _sortDir; },
+    toggleSort(key) {
+      if (_sortKey === key) _sortDir *= -1;
+      else { _sortKey = key; _sortDir = 1; }
+    },
+  };
+})();
+
+
+// ─── API layer ────────────────────────────────────────────────────────────────
+
+const API = {
+  async _fetch(url, options = {}) {
+    const res = await fetch(url, {
+      headers: { "Content-Type": "application/json" },
+      ...options,
+    });
+    const json = await res.json().catch(() => ({ ok: false, mensaje: "Respuesta inválida del servidor." }));
+    if (!res.ok) throw Object.assign(new Error(json.mensaje || "Error desconocido"), { errors: json.errors, status: res.status });
+    return json;
+  },
+
+  getClientes: ()            => API._fetch("/clientes"),
+  getStats:    ()            => API._fetch("/stats"),
+  createCliente: (body)      => API._fetch("/clientes", { method: "POST",   body: JSON.stringify(body) }),
+  updateCliente: (id, body)  => API._fetch(`/clientes/${id}`, { method: "PUT",    body: JSON.stringify(body) }),
+  deleteCliente: (id)        => API._fetch(`/clientes/${id}`, { method: "DELETE" }),
+};
+
+
+// ─── Toast notifications ──────────────────────────────────────────────────────
+
+const Toast = (() => {
+  let container;
+
+  function _ensureContainer() {
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "toast-container";
+      document.body.appendChild(container);
+    }
+  }
+
+  function show(message, type = "info", duration = 3500) {
+    _ensureContainer();
+    const t = document.createElement("div");
+    t.className = `toast toast-${type}`;
+    const icons = { success: "✓", error: "✕", info: "ℹ", warning: "⚠" };
+    t.innerHTML = `<span class="toast-icon">${icons[type] || "ℹ"}</span><span>${esc(message)}</span>`;
+    container.appendChild(t);
+    requestAnimationFrame(() => t.classList.add("toast-show"));
+    setTimeout(() => {
+      t.classList.remove("toast-show");
+      t.addEventListener("transitionend", () => t.remove(), { once: true });
+    }, duration);
+  }
+
+  return {
+    success: (m) => show(m, "success"),
+    error:   (m) => show(m, "error", 5000),
+    info:    (m) => show(m, "info"),
+    warning: (m) => show(m, "warning"),
+  };
+})();
+
+
+// ─── Utilidades ───────────────────────────────────────────────────────────────
+
+function esc(str) {
+  return String(str ?? "").replace(/[&<>"']/g, (m) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m])
+  );
+}
+
+function today() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function getField(id) {
+  return document.getElementById(id)?.value?.trim() ?? "";
+}
+
+function setField(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.value = val ?? "";
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return "—";
+  try {
+    return new Intl.DateTimeFormat("es-CO", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(dateStr + "T00:00:00"));
+  } catch {
+    return dateStr;
+  }
+}
+
+function debounce(fn, delay = 250) {
+  let timer;
+  return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay); };
+}
+
+
+// ─── Navigation ───────────────────────────────────────────────────────────────
+
+const Navigation = (() => {
+  const titles = {
+    dashboard:   ["Dashboard",       "Resumen general"],
+    registrar:   ["Nuevo Cliente",   "Registrar solicitud"],
+    solicitudes: ["Solicitudes",     "Listado de clientes"],
+  };
+
+  function navigate(section) {
+    document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
+    document.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
+
+    document.getElementById(`sec-${section}`)?.classList.add("active");
+    document.getElementById(`nav-${section}`)?.classList.add("active");
+
+    if (titles[section]) {
+      document.getElementById("pageTitle").textContent = titles[section][0];
+      document.getElementById("pageSub").textContent   = titles[section][1];
+    }
+
+    if (window.innerWidth <= 900) Sidebar.close();
+    return false;
+  }
+
+  return { navigate };
+})();
+
+function navigate(s) { Navigation.navigate(s); }
+
+
+// ─── Sidebar ──────────────────────────────────────────────────────────────────
+
+const Sidebar = {
+  toggle() {
+    document.getElementById("sidebar").classList.toggle("open");
+    document.getElementById("overlay").classList.toggle("show");
+  },
+  close() {
+    document.getElementById("sidebar").classList.remove("open");
+    document.getElementById("overlay").classList.remove("show");
+  },
+};
+
+function toggleSidebar() { Sidebar.toggle(); }
+function closeSidebar()  { Sidebar.close(); }
+
+
+// ─── KPIs ─────────────────────────────────────────────────────────────────────
+
+function countUp(id, target) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const from = parseInt(el.textContent) || 0;
+  if (from === target) { el.textContent = target; return; }
+  const steps = 28, dur = 550;
+  let i = 0;
+  const ease = (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+  const iv = setInterval(() => {
+    i++;
+    el.textContent = Math.round(from + (target - from) * ease(i / steps));
+    if (i >= steps) { el.textContent = target; clearInterval(iv); }
+  }, dur / steps);
+}
+
+function renderKPIs(clientes) {
+  const total      = clientes.length;
+  const pendientes = clientes.filter((c) => c.estado === "Pendiente").length;
+  const proceso    = clientes.filter((c) => c.estado === "En proceso").length;
+  const resueltos  = clientes.filter((c) => c.estado === "Resuelto").length;
+
+  countUp("total",      total);
+  countUp("pendientes", pendientes);
+  countUp("proceso",    proceso);
+  countUp("resueltos",  resueltos);
+
+  if (total > 0) {
+    setTimeout(() => {
+      document.getElementById("bar-total").style.width = "100%";
+      document.getElementById("bar-pend").style.width  = `${(pendientes / total) * 100}%`;
+      document.getElementById("bar-proc").style.width  = `${(proceso    / total) * 100}%`;
+      document.getElementById("bar-res").style.width   = `${(resueltos  / total) * 100}%`;
+    }, 180);
+  }
+}
+
+
+// ─── Badge ────────────────────────────────────────────────────────────────────
+
+const BADGE_MAP = {
+  "Pendiente":  "badge-pending",
+  "En proceso": "badge-process",
+  "Resuelto":   "badge-resolved",
+};
+
+function badge(estado) {
+  return `<span class="badge ${BADGE_MAP[estado] || ""}">${esc(estado)}</span>`;
+}
+
+
+// ─── Tabla ────────────────────────────────────────────────────────────────────
+
+function _applyFiltersAndSort(clientes) {
+  const { q, estado, jefe, tipo } = State.filters;
+
+  let result = clientes.filter((c) => {
+    if (estado && c.estado !== estado) return false;
+    if (jefe   && c.jefe   !== jefe)   return false;
+    if (tipo   && c.tipo   !== tipo)   return false;
+    if (q) {
+      const search = q.toLowerCase();
+      if (!c.nombre.toLowerCase().includes(search) && !c.telefono.includes(search)) return false;
+    }
+    return true;
+  });
+
+  const key = State.sortKey;
+  if (key) {
+    result.sort((a, b) => {
+      const va = (a[key] ?? "").toString().toLowerCase();
+      const vb = (b[key] ?? "").toString().toLowerCase();
+      return va < vb ? -State.sortDir : va > vb ? State.sortDir : 0;
+    });
+  }
+
+  return result;
+}
+
+function renderTabla(clientes) {
+  const filtered = _applyFiltersAndSort(clientes);
+  const tbody    = document.getElementById("tablaClientes");
+  const rowCount = document.getElementById("rowCount");
+  const filteredCount = document.getElementById("filteredCount");
+
+  if (rowCount)    rowCount.textContent = clientes.length;
+  if (filteredCount) {
+    const hidden = clientes.length - filtered.length;
+    filteredCount.textContent = hidden > 0 ? `(${filtered.length} visibles)` : "";
+  }
+
+  if (!filtered.length) {
+    tbody.innerHTML = `
+      <tr><td colspan="9">
+        <div class="empty">
+          <div class="empty-icon">⊘</div>
+          <p>${clientes.length === 0 ? "Sin registros aún" : "Ningún cliente coincide con los filtros"}</p>
+        </div>
+      </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((c) => `
+    <tr data-id="${esc(c.id)}">
+      <td class="td-name">${esc(c.nombre)}</td>
+      <td class="td-phone">${esc(c.telefono)}</td>
+      <td>${esc(c.tipo)}</td>
+      <td>${badge(c.estado)}</td>
+      <td>${esc(c.linea)}</td>
+      <td>${esc(c.jefe)}</td>
+      <td class="td-date">${formatDate(c.fecha_inicio)}</td>
+      <td class="td-date">${formatDate(c.fecha_fin)}</td>
+      <td>
+        <div class="actions">
+          <button class="act act-edit" title="Editar"   onclick="editarCliente('${esc(c.id)}')">✎</button>
+          <button class="act act-del"  title="Eliminar" onclick="confirmarEliminar('${esc(c.id)}', '${esc(c.nombre)}')">✕</button>
+        </div>
+      </td>
+    </tr>`).join("");
+}
+
+
+// ─── Carga de datos ───────────────────────────────────────────────────────────
+
+async function cargarClientes() {
+  try {
+    const json = await API.getClientes();
+    State.clientes = json; // el endpoint devuelve array directamente
+    renderTabla(State.clientes);
+    renderKPIs(State.clientes);
+  } catch (e) {
+    Toast.error("No se pudo cargar la lista de clientes.");
+    console.error(e);
+  }
+}
+
+
+// ─── Filtros y búsqueda ───────────────────────────────────────────────────────
+
+const _onSearch = debounce((val) => {
+  State.setFilter("q", val);
+  renderTabla(State.clientes);
 });
 
+function onFilterChange(key, val) {
+  State.setFilter(key, val);
+  renderTabla(State.clientes);
+}
 
-// OBTENER CLIENTES DESDE FLASK
-function cargarClientes() {
-    fetch("/clientes")
-        .then(res => res.json())
-        .then(data => {
-            mostrarTabla(data);
-            actualizarDashboard(data);
-            actualizarGrafica(data);
-        });
+function limpiarFiltros() {
+  ["q", "estado", "jefe", "tipo"].forEach((k) => State.setFilter(k, ""));
+  setField("searchInput", "");
+  setField("filterEstado", "");
+  setField("filterJefe",   "");
+  setField("filterTipo",   "");
+  renderTabla(State.clientes);
+}
+
+function sortBy(key) {
+  State.toggleSort(key);
+  renderTabla(State.clientes);
 }
 
 
-// GUARDAR CLIENTE
-function guardarCliente() {
+// ─── Guardar cliente ──────────────────────────────────────────────────────────
 
-    const nombre = document.getElementById("nombre").value;
-    const telefono = document.getElementById("telefono").value;
-    const tipo = document.getElementById("tipo").value;
-    const estado = document.getElementById("estado").value;
-    const linea = document.getElementById("linea").value;
-    const jefe = document.getElementById("jefe").value;
+async function guardarCliente() {
+  const campos = ["nombre", "telefono", "tipo", "estado", "linea", "jefe"];
+  const payload = {};
 
-    if (!nombre || !telefono || !tipo || !estado || !linea || !jefe) {
-        alert("Todos los campos son obligatorios");
-        return;
-    }
+  for (const k of campos) {
+    const v = getField(k);
+    if (!v) { Toast.warning("Todos los campos son obligatorios."); return; }
+    payload[k] = v;
+  }
 
-    const cliente = {
-        nombre,
-        telefono,
-        tipo,
-        estado,
-        linea,
-        jefe,
-        fecha_inicio: new Date().toISOString().split("T")[0],
-        fecha_fin: null
-    };
+  payload.fecha_inicio = today();
+  payload.fecha_fin    = null;
 
-    fetch("/clientes", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(cliente)
-    })
-    .then(() => {
-        alert("Cliente creado correctamente");
-        resetFormulario();
-        cargarClientes();
-    });
+  const btn = document.querySelector(".btn-save");
+  if (btn) { btn.disabled = true; btn.textContent = "Guardando…"; }
+
+  try {
+    await API.createCliente(payload);
+    campos.forEach((k) => setField(k, ""));
+    await cargarClientes();
+    navigate("solicitudes");
+    Toast.success("Cliente registrado correctamente.");
+  } catch (e) {
+    const detail = e.errors?.join(" ") ?? e.message;
+    Toast.error(detail || "No se pudo registrar el cliente.");
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "Guardar cliente →"; }
+  }
 }
 
 
-// MOSTRAR TABLA
-function mostrarTabla(clientes) {
-    tabla.innerHTML = "";
+// ─── Editar cliente ───────────────────────────────────────────────────────────
 
-    clientes.forEach(cliente => {
-        const fila = `
-        <tr>
-            <td>${cliente.nombre}</td>
-            <td>${cliente.telefono}</td>
-            <td>${cliente.tipo}</td>
-            <td>${cliente.estado}</td>
-            <td>${cliente.linea}</td>
-            <td>${cliente.jefe}</td>
-            <td>${cliente.fecha_inicio}</td>
-            <td>${cliente.fecha_fin || "-"}</td>
-            <td>
-                <button onclick="editarCliente(${cliente.id})">Editar</button>
-                <button onclick="eliminarCliente(${cliente.id})">Eliminar</button>
-            </td>
-        </tr>
-        `;
-        tabla.innerHTML += fila;
-    });
-}
-
-
-// ELIMINAR CLIENTE
-function eliminarCliente(id) {
-
-    const confirmacion = confirm("¿Estás seguro de eliminar este cliente?");
-
-    if (!confirmacion) return;
-
-    fetch(`/clientes/${id}`, {
-        method: "DELETE"
-    })
-    .then(() => {
-        alert("Cliente eliminado correctamente");
-        cargarClientes();
-    });
-}
-
-
-// DASHBOARD
-function actualizarDashboard(clientes) {
-
-    let pendientes = 0;
-    let proceso = 0;
-    let resueltos = 0;
-
-    clientes.forEach(c => {
-        if (c.estado === "Pendiente") pendientes++;
-        if (c.estado === "En proceso") proceso++;
-        if (c.estado === "Resuelto") resueltos++;
-    });
-
-    document.getElementById("total").textContent = clientes.length;
-    document.getElementById("pendientes").textContent = pendientes;
-    document.getElementById("proceso").textContent = proceso;
-    document.getElementById("resueltos").textContent = resueltos;
-}
-
-
-// GRÁFICA DINÁMICA
-function actualizarGrafica(clientes) {
-
-    let pendientes = 0;
-    let proceso = 0;
-    let resueltos = 0;
-
-    clientes.forEach(c => {
-        if (c.estado === "Pendiente") pendientes++;
-        if (c.estado === "En proceso") proceso++;
-        if (c.estado === "Resuelto") resueltos++;
-    });
-
-    const datos = [pendientes, proceso, resueltos];
-
-    const ctx = document.getElementById("miGrafica");
-
-    if (grafica) {
-        grafica.destroy();
-    }
-
-    grafica = new Chart(ctx, {
-        type: "doughnut",
-        data: {
-            labels: ["Pendientes", "En proceso", "Resueltas"],
-            datasets: [{
-                data: datos
-            }]
-        }
-    });
-}
-
-
-// EDITAR CLIENTE
 function editarCliente(id) {
+  const c = State.clientes.find((x) => String(x.id) === String(id));
+  if (!c) { Toast.error("Cliente no encontrado."); return; }
 
-    fetch("/clientes")
-        .then(res => res.json())
-        .then(clientes => {
+  ["nombre", "telefono", "tipo", "estado", "linea", "jefe"].forEach((k) =>
+    setField(`edit_${k}`, c[k] ?? "")
+  );
 
-            const c = clientes.find(cliente => cliente.id === id);
+  State.editingId = id;
+  Modal.open("modalEditar");
+}
 
-            document.getElementById("edit_nombre").value = c.nombre;
-            document.getElementById("edit_telefono").value = c.telefono;
-            document.getElementById("edit_tipo").value = c.tipo;
-            document.getElementById("edit_estado").value = c.estado;
-            document.getElementById("edit_linea").value = c.linea;
-            document.getElementById("edit_jefe").value = c.jefe;
+async function guardarEdicion() {
+  const campos = ["nombre", "telefono", "tipo", "estado", "linea", "jefe"];
+  const payload = {};
 
-            editandoId = id;
+  for (const k of campos) {
+    const v = getField(`edit_${k}`);
+    if (!v) { Toast.warning("Todos los campos son obligatorios."); return; }
+    payload[k] = v;
+  }
 
-            document.getElementById("modalEditar").style.display = "flex";
-            document.body.style.overflow = "hidden";
-        });
+  const btn = document.querySelector(".btn-confirm");
+  if (btn) { btn.disabled = true; btn.textContent = "Actualizando…"; }
+
+  try {
+    await API.updateCliente(State.editingId, payload);
+    Modal.close("modalEditar");
+    await cargarClientes();
+    Toast.success("Cliente actualizado correctamente.");
+  } catch (e) {
+    const detail = e.errors?.join(" ") ?? e.message;
+    Toast.error(detail || "No se pudo actualizar el cliente.");
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "Actualizar →"; }
+  }
 }
 
 
-// GUARDAR EDICIÓN
-function guardarEdicion() {
+// ─── Eliminar cliente ─────────────────────────────────────────────────────────
 
-    const nombre = document.getElementById("edit_nombre").value;
-    const telefono = document.getElementById("edit_telefono").value;
-    const tipo = document.getElementById("edit_tipo").value;
-    const estado = document.getElementById("edit_estado").value;
-    const linea = document.getElementById("edit_linea").value;
-    const jefe = document.getElementById("edit_jefe").value;
-
-    if (!nombre || !telefono || !tipo || !estado || !linea || !jefe) {
-        alert("Todos los campos son obligatorios");
-        return;
+function confirmarEliminar(id, nombre) {
+  ConfirmDialog.show(
+    `¿Eliminar a <strong>${esc(nombre)}</strong>? Esta acción no se puede deshacer.`,
+    async () => {
+      try {
+        await API.deleteCliente(id);
+        await cargarClientes();
+        Toast.success("Cliente eliminado.");
+      } catch (e) {
+        Toast.error(e.message || "No se pudo eliminar el cliente.");
+      }
     }
+  );
+}
 
-    const datos = {
-        nombre,
-        telefono,
-        tipo,
-        estado,
-        linea,
-        jefe,
-        fecha_fin: estado === "Resuelto"
-            ? new Date().toISOString().split("T")[0]
-            : null
-    };
-
-    fetch(`/clientes/${editandoId}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(datos)
-    })
-    .then(() => {
-        alert("Cliente actualizado correctamente");
-        cerrarModal();
-        cargarClientes();
-    });
+// Alias de compatibilidad con HTML antiguo
+function eliminarCliente(id) {
+  const c = State.clientes.find((x) => String(x.id) === String(id));
+  confirmarEliminar(id, c?.nombre ?? id);
 }
 
 
-// CERRAR MODAL
-function cerrarModal() {
-    document.getElementById("modalEditar").style.display = "none";
-    document.body.style.overflow = "auto";
-    editandoId = null;
-}
+// ─── Modal ────────────────────────────────────────────────────────────────────
 
+const Modal = {
+  open(id) {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = "flex"; document.body.style.overflow = "hidden"; }
+  },
+  close(id) {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = "none"; document.body.style.overflow = ""; }
+    if (id === "modalEditar") State.editingId = null;
+  },
+};
 
-// LIMPIAR FORMULARIO COMPLETO
-function resetFormulario() {
-    document.getElementById("nombre").value = "";
-    document.getElementById("telefono").value = "";
-    document.getElementById("tipo").value = "";
-    document.getElementById("estado").value = "";
-    document.getElementById("linea").value = "";
-    document.getElementById("jefe").value = "";
-}
+function cerrarModal()        { Modal.close("modalEditar"); }
+function abrirEstadisticas()  { Modal.open("modalStats"); cargarEstadisticas(); }
+function cerrarEstadisticas() { Modal.close("modalStats"); }
 
-
-// =====================
-// ESTADÍSTICAS
-// =====================
-
-function abrirEstadisticas() {
-    document.getElementById("modalStats").style.display = "flex";
-    document.body.style.overflow = "hidden";
-    cargarEstadisticas();
-}
-
-function cerrarEstadisticas() {
-    document.getElementById("modalStats").style.display = "none";
-    document.body.style.overflow = "auto";
-}
-
-function cambiarGrafica(tipo) {
-    tipoGrafica = tipo;
-    cargarEstadisticas();
-}
-
-function cargarEstadisticas() {
-
-    fetch("/clientes")
-        .then(res => res.json())
-        .then(data => {
-
-            const filtro = document.getElementById("filtroTiempo").value;
-            const hoy = new Date();
-
-            if (filtro !== "todos") {
-                data = data.filter(c => {
-                    const fecha = new Date(c.fecha_inicio);
-                    const diff = (hoy - fecha) / (1000 * 60 * 60 * 24);
-
-                    if (filtro === "hoy") return diff <= 1;
-                    if (filtro === "semana") return diff <= 7;
-                    if (filtro === "mes") return diff <= 30;
-                });
-            }
-
-            actualizarGraficaModal(data);
-        });
-}
-
-
-function actualizarGraficaModal(clientes) {
-
-    let datos = {};
-    let titulo = "";
-
-    if (tipoGrafica === "estado") {
-        titulo = "Estados";
-        clientes.forEach(c => {
-            datos[c.estado] = (datos[c.estado] || 0) + 1;
-        });
-    }
-
-    if (tipoGrafica === "jefe") {
-        titulo = "Clientes por Jefe";
-        clientes.forEach(c => {
-            datos[c.jefe] = (datos[c.jefe] || 0) + 1;
-        });
-    }
-
-    if (tipoGrafica === "tipo") {
-        titulo = "Tipos de Solicitud";
-        clientes.forEach(c => {
-            datos[c.tipo] = (datos[c.tipo] || 0) + 1;
-        });
-    }
-
-    if (tipoGrafica === "linea") {
-        titulo = "Líneas de WhatsApp";
-        clientes.forEach(c => {
-            datos[c.linea] = (datos[c.linea] || 0) + 1;
-        });
-    }
-
-    const ctx = document.getElementById("graficaGeneral");
-
-    if (graficaStats) {
-        graficaStats.destroy();
-    }
-
-    graficaStats = new Chart(ctx, {
-        type: "bar",
-        data: {
-            labels: Object.keys(datos),
-            datasets: [{
-                label: titulo,
-                data: Object.values(datos)
-            }]
-        }
-    });
-}
-
-// MENU SIDEBAR
-const menuBtn = document.getElementById("menuBtn");
-const sidebar = document.querySelector(".sidebar");
-
-menuBtn.addEventListener("click", () => {
-    sidebar.classList.toggle("active");
-});
-
-document.querySelectorAll(".sidebar a").forEach(link => {
-    link.addEventListener("click", () => {
-        sidebar.classList.remove("active");
-    });
-});
-
+// Cerrar modal al hacer clic en el backdrop
 document.addEventListener("click", (e) => {
-    if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
-        sidebar.classList.remove("active");
+  if (e.target.classList.contains("modal")) Modal.close(e.target.id);
+});
+
+
+// ─── Confirm Dialog ───────────────────────────────────────────────────────────
+
+const ConfirmDialog = {
+  _cb: null,
+
+  show(htmlMessage, onConfirm) {
+    document.getElementById("confirmMessage").innerHTML = htmlMessage;
+    this._cb = onConfirm;
+    Modal.open("modalConfirm");
+  },
+
+  confirm() {
+    Modal.close("modalConfirm");
+    if (this._cb) { this._cb(); this._cb = null; }
+  },
+
+  cancel() {
+    Modal.close("modalConfirm");
+    this._cb = null;
+  },
+};
+
+
+// ─── Estadísticas ─────────────────────────────────────────────────────────────
+
+function cambiarGrafica(tipo, btn) {
+  State.chartType = tipo;
+  document.querySelectorAll(".stab").forEach((b) => b.classList.remove("active"));
+  btn?.classList.add("active");
+  cargarEstadisticas();
+}
+
+async function cargarEstadisticas() {
+  try {
+    const stats = await API.getStats();
+    _renderChart(stats);
+  } catch (e) {
+    Toast.error("No se pudieron cargar las estadísticas.");
+  }
+}
+
+function _renderChart(stats) {
+  const dataMap = {
+    estado: stats.por_estado,
+    tipo:   stats.por_tipo,
+    jefe:   stats.por_jefe,
+    linea:  stats.por_linea,
+  };
+
+  // Filtro de tiempo (client-side sobre los datos del endpoint /stats)
+  // El filtro requeriría pasar rango de fechas al backend; por ahora usa todos los datos
+  const raw    = dataMap[State.chartType] ?? {};
+  const labels = Object.keys(raw);
+  const values = Object.values(raw);
+
+  const palette = ["#00c2ff", "#00e5a0", "#ffac30", "#ff4d6a", "#a78bfa", "#34d399"];
+
+  if (State.chart) State.chart.destroy();
+
+  State.chart = new Chart(document.getElementById("graficaGeneral"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: labels.map((_, i) => palette[i % palette.length] + "22"),
+        borderColor:     labels.map((_, i) => palette[i % palette.length]),
+        borderWidth: 1.5,
+        borderRadius: 6,
+        borderSkipped: false,
+      }],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#16202e",
+          borderColor: "rgba(255,255,255,0.1)",
+          borderWidth: 1,
+          titleColor: "#e8eef5",
+          bodyColor: "#8a9bb0",
+          cornerRadius: 8,
+          padding: 10,
+        },
+      },
+      scales: {
+        x: {
+          ticks: { color: "#4a5a6e", font: { family: "IBM Plex Mono", size: 11 } },
+          grid:  { color: "rgba(255,255,255,0.04)" },
+          border: { color: "rgba(255,255,255,0.06)" },
+        },
+        y: {
+          ticks: { color: "#4a5a6e", font: { family: "IBM Plex Mono", size: 11 }, stepSize: 1 },
+          grid:  { color: "rgba(255,255,255,0.04)" },
+          border: { color: "rgba(255,255,255,0.06)" },
+          beginAtZero: true,
+        },
+      },
+    },
+  });
+}
+
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+
+document.addEventListener("DOMContentLoaded", () => {
+  cargarClientes();
+  navigate("dashboard");
+
+  // Buscador en tiempo real
+  const searchInput = document.getElementById("searchInput");
+  searchInput?.addEventListener("input", (e) => _onSearch(e.target.value));
+
+  // Atajo de teclado: Escape cierra modales
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      ["modalEditar", "modalStats", "modalConfirm"].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el?.style.display === "flex") Modal.close(id);
+      });
     }
+  });
 });
