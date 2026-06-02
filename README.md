@@ -141,5 +141,6 @@ python app.py
 4. Abrir en navegador
 http://127.0.0.1:5000
 ```
-![Texto alternativo](./img/WhatsApp%20Image%202026-06-01%20at%2010.10.30%20PM.jpeg)
-![Texto alternativo](./img/WhatsApp%20Image%202026-06-01%20at%2010.11.30%20PM.jpeg)
+![alt text](./img/image.png)
+![alt text](./img/image2.png)
+![alt text](./img/image3.png)
